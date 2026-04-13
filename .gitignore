@@ -1,0 +1,8 @@
+data/
+etl_taxi.log
+venv/
+.env
+__pycache__/
+*.pyc
+*.parquet
+.DS_Store
