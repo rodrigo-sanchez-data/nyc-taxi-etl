@@ -6,7 +6,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).parent
 
-LOG_PATH = BASE_DIR / 'etl_taxi.log'
+PATH_LOG = BASE_DIR / 'etl_taxi.log'
 PATH_RAW = BASE_DIR / 'data' / 'raw' / 'yellow_tripdata_2023-01.parquet'
 PATH_CSV_RAW = BASE_DIR / 'data' / 'raw' / 'taxi_zone_lookup.csv'
 PATH_PROCESSED = BASE_DIR / 'data' / 'processed' / 'clean_taxi.parquet'

@@ -10,7 +10,7 @@ def extract(path: str) -> pd.DataFrame:
         logger.info(f'[EXTRACT] Archivo cargado con éxito | Filas: {len(df):,} | Columnas: {df.shape[1]}')
         return df
     except FileNotFoundError:
-        logger.error(f'[EXTRACT] Fallo critico: No se encontró el archivo en: {path}')
+        logger.error(f'[EXTRACT] No se encontró el archivo en: {path}')
         raise
     except Exception:
         logger.exception(f'[EXTRACT] Error durante la extracción')
@@ -23,7 +23,7 @@ def extract_csv(path: str) -> pd.DataFrame:
         logger.info(f'[EXTRACT] Archivo cargado con éxito | Filas: {len(df):,} | Columnas: {df.shape[1]}')
         return df
     except FileNotFoundError:
-        logger.error(f'[EXTRACT] Fallo critico: No se encontró el archivo en: {path}')
+        logger.error(f'[EXTRACT] No se encontró el archivo en: {path}')
         raise
     except Exception:
         logger.exception(f'[EXTRACT] Error durante la extracción')

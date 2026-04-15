@@ -4,7 +4,7 @@ import sys
 from src.extract import extract, extract_csv
 from src.load import load, load_to_postgres
 from config import (
-    LOG_PATH, PATH_RAW, PATH_PROCESSED, PATH_CSV_RAW, COLUMNAS_NECESARIAS,
+    PATH_LOG, PATH_RAW, PATH_PROCESSED, PATH_CSV_RAW, COLUMNAS_NECESARIAS,
     CAMPOS_CRITICOS, CAMPOS_MONETARIOS_AUXILIARES, COLUMNAS_CLAVE, DB_CONN
 )
 from src.transform import (
@@ -12,12 +12,11 @@ from src.transform import (
     imputar_nulos,filtrar_registros_invalidos, remover_duplicados, enriquecer_zonas, calcular_features, validar_resultado
 )
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(LOG_PATH),
+        logging.FileHandler(PATH_LOG),
         logging.StreamHandler()
     ]
 )
@@ -51,7 +50,7 @@ def main() -> None:
         df_clean = ejecutar_pipeline(df, df_zonas)
 
         load(df_clean, PATH_PROCESSED)
-        load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
+        # load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
         
         logger.info(f'[PIPELINE] Resumen | Iniciales: {n_antes:,} | Finales: {len(df_clean):,}')
         logger.info(f'[PIPELINE] Resumen | Reducción: {(n_antes - len(df_clean)) / n_antes:.2%}')

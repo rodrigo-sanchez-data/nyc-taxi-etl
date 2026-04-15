@@ -1,5 +1,6 @@
 import pandas as pd
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ def estandarizar_columnas(df: pd.DataFrame) -> pd.DataFrame:
     logger.info('[TRANSFORM] Nombres de columnas estandarizados')
     return df
 
-def validar_esquema(df: pd.DataFrame, columnas_necesarias: list[str]) -> pd.DataFrame:
+def validar_esquema(df: pd.DataFrame, columnas_necesarias: Path) -> pd.DataFrame:
 
     faltantes = [col for col in columnas_necesarias if col not in df.columns]
     if faltantes:
@@ -48,7 +49,7 @@ def convertir_tipos(df: pd.DataFrame) -> pd.DataFrame:
     logger.info('[TRANSFORM] Tipos de datos convertidos')
     return df
 
-def filtrar_nulos_criticos(df: pd.DataFrame, campos_criticos: list[str]) -> pd.DataFrame:
+def filtrar_nulos_criticos(df: pd.DataFrame, campos_criticos: Path) -> pd.DataFrame:
     n_antes = len(df)
 
     filas_con_nulos = df[campos_criticos].isna().any(axis=1).sum()
@@ -68,7 +69,7 @@ def filtrar_nulos_criticos(df: pd.DataFrame, campos_criticos: list[str]) -> pd.D
     logger.info(f'[TRANSFORM] Filtrar Nulos Criticos | Entrantes: {n_antes:,} -> Salientes: {len(df):,} ({n_antes-len(df):,} eliminados)')
     return df
 
-def imputar_nulos(df: pd.DataFrame, campos_monetarios_aux: list[str]) -> pd.DataFrame:
+def imputar_nulos(df: pd.DataFrame, campos_monetarios_aux: Path) -> pd.DataFrame:
 
     nulos_pass = df['passenger_count'].isna().sum()
     if nulos_pass > 0:
@@ -95,7 +96,7 @@ def imputar_nulos(df: pd.DataFrame, campos_monetarios_aux: list[str]) -> pd.Data
 
 def filtrar_registros_invalidos(
     df: pd.DataFrame,
-    campos_monetarios_aux: list[str],
+    campos_monetarios_aux: Path,
     passenger_min: int = 1,
     passenger_max: int = 6,
     fare_min: float = 3.0,
@@ -133,7 +134,7 @@ def filtrar_registros_invalidos(
     logger.info(f'[TRANSFORM] Filtro Invalidados | Entrantes: {n_antes:,} -> Salientes: {len(df):,} ({n_antes-len(df):,} eliminados)')
     return df
 
-def remover_duplicados(df: pd.DataFrame, columnas_claves: list[str]) -> pd.DataFrame:
+def remover_duplicados(df: pd.DataFrame, columnas_claves: Path) -> pd.DataFrame:
     
     n_antes = len(df)
     n_duplicados = df.duplicated(subset=columnas_claves).sum()
@@ -191,8 +192,8 @@ def calcular_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def validar_resultado(
     df: pd.DataFrame,
-    campos_criticos: list[str],
-    columnas_clave: list[str],
+    campos_criticos: Path,
+    columnas_clave: Path,
     passenger_min: int = 1,
     passenger_max: int = 6,
     distancia_min: float = 0.0,
