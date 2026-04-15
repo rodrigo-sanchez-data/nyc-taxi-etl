@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 def load(df: pd.DataFrame, path: Path) -> None:
     logger.info(f'[LOAD] Iniciando carga de datos en: {path}')
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)
         df.to_parquet(path, engine='pyarrow', compression='snappy', index=False)
         logger.info(f'[LOAD] Carga exitosa | Archivo guardado con {len(df):,} registros')
     except Exception:
