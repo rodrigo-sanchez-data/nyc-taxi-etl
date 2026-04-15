@@ -50,7 +50,7 @@ def main() -> None:
         df_clean = ejecutar_pipeline(df, df_zonas)
 
         load(df_clean, PATH_PROCESSED)
-        # load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
+        load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
         
         logger.info(f'[PIPELINE] Resumen | Iniciales: {n_antes:,} | Finales: {len(df_clean):,}')
         logger.info(f'[PIPELINE] Resumen | Reducción: {(n_antes - len(df_clean)) / n_antes:.2%}')
