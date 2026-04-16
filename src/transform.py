@@ -206,13 +206,21 @@ def validar_resultado(
     checks = {
         'sin_nulos_criticos': df[campos_criticos].notna().all().all(),
         'fechas_consistentes': (df['tpep_dropoff_datetime'] > df['tpep_pickup_datetime']).all(),
+
         'pasajeros_validos': df['passenger_count'].between(passenger_min,passenger_max).all(),
         'distancias_validas': (df['trip_distance'] > distancia_min).all(),
         'fare_validos': (df['fare_amount'] >= fare_min).all(),
         'total_validos': (df['total_amount'] >= total_min).all(),
+
         'sin_duplicados': not df[columnas_clave].duplicated().any(),
+
         'trip_duration_positiva': (df['trip_duration_min'] > 0).all(),
-        'speed_valida': (df['speed_mph'].dropna() < 75).all()
+        'speed_valida': (df['speed_mph'].dropna() < 75).all(),
+        'pickup_hour_valido': df['pickup_hour'].between(0, 23).all(),
+        
+        'vendorid_es_category': str(df['vendorid'].dtype) == 'category',
+        'fechas_son_datetime': pd.api.types.is_datetime64_any_dtype(df['tpep_pickup_datetime']),
+        'passenger_es_int': str(df['passenger_count'].dtype) == 'Int64',
     }
 
     fallos = [nombre for nombre, resultado in checks.items() if not resultado]

@@ -51,13 +51,15 @@ def main() -> None:
         n_antes = len(df)
 
         df_clean = ejecutar_pipeline(df, df_zonas)
-        
+         
         logger.info(f'[PIPELINE] Resumen | Iniciales: {n_antes:,} | Finales: {len(df_clean):,}')
         logger.info(f'[PIPELINE] Resumen | Reducción: {(n_antes - len(df_clean)) / n_antes:.2%}')
 
         load(df_clean, PATH_PROCESSED)
-        load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
+        # load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
         logger.info('[PIPELINE] === Pipeline completado con éxito ===')
+        print(df_clean['service_zone_dropoff'].value_counts(dropna=False))
+        print(df_clean.dtypes)
 
     except Exception as e:
         logger.critical(f'[PIPELINE] Falla crítica: {e}', exc_info=True)
