@@ -1,9 +1,10 @@
 import pandas as pd
 import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-def extract(path: str) -> pd.DataFrame:
+def extract(path: Path) -> pd.DataFrame:
     logger.info(f'[EXTRACT] Iniciando extracción de datos desde: {path}')
     try:
         df = pd.read_parquet(path, engine='pyarrow')
@@ -16,7 +17,7 @@ def extract(path: str) -> pd.DataFrame:
         logger.exception(f'[EXTRACT] Error durante la extracción')
         raise
 
-def extract_csv(path: str) -> pd.DataFrame:
+def extract_csv(path: Path) -> pd.DataFrame:
     logger.info(f'[EXTRACT] Iniciando extraccion de datos desde: {path}')
     try:
         df = pd.read_csv(path, sep=',', encoding='utf-8')

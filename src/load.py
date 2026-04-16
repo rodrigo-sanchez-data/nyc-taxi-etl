@@ -25,3 +25,18 @@ def load_to_postgres(df: pd.DataFrame, tabla: str, conn_string: Path) -> None:
         logger.exception('[LOAD] Error al cargar en PostgreSQL')
         raise   
 
+def load_to_postgres(df: pd.DataFrame, tabla: str, conn_string: str) -> None:
+    if df.empty:
+        logger.warning('[LOAD] DataFrame vacío, no se insertaron registros')
+        return
+    
+    logger.info(f'[LOAD] Iniciando conexión al motor de base de datos para la tabla: {tabla}')
+    try:
+        engine = create_engine(conn_string)
+        df.to_sql(tabla, engine, if_exists='append', index=False, chunksize=10000, method='multi')
+        logger.info(f'[LOAD] Carga exitosa | {len(df):,} registros insertados en la tabla: {tabla}')
+    except Exception:
+        logger.exception('[LOAD] Error al cargar en PostgreSQL')
+        raise
+    finally:
+        engine.dispose()

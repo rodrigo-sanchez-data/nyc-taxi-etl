@@ -34,3 +34,9 @@ DB_CONN = (
     f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
     f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 )
+
+PASSENGER_MIN = 1
+PASSENGER_MAX = 6
+FARE_MIN = 3.0
+TOTAL_MIN = 3.0
+DISTANCIA_MIN = 0.0

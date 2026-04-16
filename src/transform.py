@@ -5,7 +5,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 def estandarizar_columnas(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
+
     df.columns = (
         df.columns
         .str.strip()
@@ -98,11 +98,11 @@ def imputar_nulos(df: pd.DataFrame, campos_monetarios_aux: list[str]) -> pd.Data
 def filtrar_registros_invalidos(
     df: pd.DataFrame,
     campos_monetarios_aux: list[str],
-    passenger_min: int = 1,
-    passenger_max: int = 6,
-    fare_min: float = 3.0,
-    total_min: float = 3.0,
-    distancia_min: float = 0.0
+    passenger_min: int,
+    passenger_max: int,
+    distancia_min: float,
+    fare_min: float,
+    total_min: float
 ) -> pd.DataFrame:
 
     n_antes = len(df)
@@ -117,7 +117,7 @@ def filtrar_registros_invalidos(
     invalidos_total = (~mask_total).sum()
 
     if invalidos_passenger > 0:
-        logger.warning(f'[TRANSFORM] passenger_count: {invalidos_passenger:,} registros fuera de rango [{passenger_min}, {passenger_max}]')
+        logger.warning(f'[TRANSFORM] passenger_count: {invalidos_passenger:,} registros fuera de rango [{passenger_min} - {passenger_max}]')
     if invalidos_distance > 0:
         logger.warning(f'[TRANSFORM] trip_distance: {invalidos_distance:,} registros inválidos (<= {distancia_min})')
     if invalidos_fare > 0:
@@ -129,7 +129,7 @@ def filtrar_registros_invalidos(
 
     valores_negativos = (df[campos_monetarios_aux] < 0).sum().sum()
     if valores_negativos > 0:
-        logger.info(f'[TRANSFORM] Campos monetarios: {valores_negativos:,} valores negativos ajustados a (0.0)')
+        logger.warning(f'[TRANSFORM] Campos monetarios: {valores_negativos:,} valores negativos ajustados a (0.0)')
         df[campos_monetarios_aux] = df[campos_monetarios_aux].clip(lower=0)
         
     logger.info(f'[TRANSFORM] Filtro Invalidados | Entrantes: {n_antes:,} -> Salientes: {len(df):,} ({n_antes-len(df):,} eliminados)')
@@ -186,7 +186,7 @@ def calcular_features(df: pd.DataFrame) -> pd.DataFrame:
         df['speed_mph'] = df['speed_mph'].mask(mask_speed_fuera_rango)
     
     df['pickup_day_name'] = df['tpep_pickup_datetime'].dt.day_name().astype('category')
-    df['pickup_hour'] = df['tpep_pickup_datetime'].dt.hour.astype('Int64')
+    df['pickup_hour'] = df['tpep_pickup_datetime'].dt.hour.astype('Int8')
 
     logger.info('[TRANSFORM] Features calculadas: trip_duration_min, speed_mph, pickup_day_name, pickup_hour')
     return df
@@ -195,11 +195,11 @@ def validar_resultado(
     df: pd.DataFrame,
     campos_criticos: list[str],
     columnas_clave: list[str],
-    passenger_min: int = 1,
-    passenger_max: int = 6,
-    distancia_min: float = 0.0,
-    fare_min: float = 3.0,
-    total_min: float = 3.0
+    passenger_min: int,
+    passenger_max: int,
+    distancia_min: float,
+    fare_min: float,
+    total_min: float
 
 ) -> pd.DataFrame:
 
