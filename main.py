@@ -56,7 +56,7 @@ def main() -> None:
         logger.info(f'[PIPELINE] Resumen | Reducción: {(n_antes - len(df_clean)) / n_antes:.2%}')
 
         load(df_clean, PATH_PROCESSED)
-        # load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
+        load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
         logger.info('[PIPELINE] === Pipeline completado con éxito ===')
 
     except Exception as e:

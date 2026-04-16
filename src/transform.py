@@ -211,7 +211,7 @@ def validar_resultado(
         'fare_validos': (df['fare_amount'] >= fare_min).all(),
         'total_validos': (df['total_amount'] >= total_min).all(),
         'sin_duplicados': not df[columnas_clave].duplicated().any(),
-        'trip_duration_positiva':  (df['trip_duration_min'] > 0).all(),
+        'trip_duration_positiva': (df['trip_duration_min'] > 0).all(),
         'speed_valida': (df['speed_mph'].dropna() < 75).all()
     }
 
