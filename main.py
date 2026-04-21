@@ -5,7 +5,7 @@ from src.extract import extract, extract_csv
 from src.load import load, load_to_postgres
 from config import (
     PATH_LOG, PATH_RAW, PATH_PROCESSED, PATH_CSV_RAW, COLUMNAS_NECESARIAS, CAMPOS_CRITICOS, CAMPOS_MONETARIOS_AUXILIARES,
-    COLUMNAS_CLAVE, PASSENGER_MIN, PASSENGER_MAX, DISTANCIA_MIN, FARE_MIN,TOTAL_MIN, DB_CONN
+    COLUMNAS_CLAVE, PASSENGER_MIN, PASSENGER_MAX, DISTANCIA_MIN, FARE_MIN,TOTAL_MIN, get_db_conn
 )
 from src.transform import (
     estandarizar_columnas, validar_esquema, limpiar_texto, convertir_tipos, filtrar_nulos_criticos,
@@ -46,7 +46,7 @@ def ejecutar_pipeline(df: pd.DataFrame, df_zonas: pd.DataFrame) -> pd.DataFrame:
 def main() -> None:
     logger.info('[PIPELINE] === Iniciando pipeline ETL Taxi NYC ===')
     try:
-        df = extract(PATH_RAW)
+        df = extract(PATH_RAW, COLUMNAS_NECESARIAS)
         df_zonas = extract_csv(PATH_CSV_RAW)
         n_antes = len(df)
 
@@ -56,13 +56,21 @@ def main() -> None:
         logger.info(f'[PIPELINE] Resumen | Reducción: {(n_antes - len(df_clean)) / n_antes:.2%}')
 
         load(df_clean, PATH_PROCESSED)
-        # load_to_postgres(df_clean, 'yellow_taxi_2023_01', DB_CONN)
+        conn_string = get_db_conn()
+        # load_to_postgres(df_clean, 'yellow_taxi_2023_01', conn_string)
         logger.info('[PIPELINE] === Pipeline completado con éxito ===')
-        print(df_clean['service_zone_dropoff'].value_counts(dropna=False))
-        print(df_clean.dtypes)
 
+    except FileNotFoundError as e:
+        logger.critical(f'[EXTRACT] Archivo no encontrado: {e}')
+        sys.exit(1)
+    except EnvironmentError as e:
+        logger.critical(f'[PIPELINE] Configuraciónde DB inválida: {e}')
+        sys.exit(1)
+    except ValueError as e:
+        logger.critical(f'[TRANSFORM] Error de validación: {e}')
+        sys.exit(1)
     except Exception as e:
-        logger.critical(f'[PIPELINE] Falla crítica: {e}', exc_info=True)
+        logger.critical(f'[PIPELINE] Falla crítica inesperada: {e}', exc_info=True)
         sys.exit(1)
 
 if __name__ == '__main__':

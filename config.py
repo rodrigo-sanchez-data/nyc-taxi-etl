@@ -30,13 +30,19 @@ COLUMNAS_CLAVE = [
     'trip_distance','pulocationid','dolocationid'
 ]
 
-DB_CONN = (
-    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
-    f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-)
-
 PASSENGER_MIN = 1
 PASSENGER_MAX = 6
 FARE_MIN = 3.0
 TOTAL_MIN = 3.0
-DISTANCIA_MIN = 0.0
+DISTANCIA_MIN = 0.1
+
+def get_db_conn() -> str:
+    requeridos = ['DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'DB_NAME']
+    faltantes = [var for var in requeridos if not os.getenv(var)]
+    if faltantes:
+        raise EnvironmentError(f'Varianles faltantes: {faltantes}')
+    
+    return (
+        f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}:"
+        f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+    )

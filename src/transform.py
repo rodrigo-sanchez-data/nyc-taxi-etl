@@ -186,7 +186,7 @@ def calcular_features(df: pd.DataFrame) -> pd.DataFrame:
         df['speed_mph'] = df['speed_mph'].mask(mask_speed_fuera_rango)
     
     df['pickup_day_name'] = df['tpep_pickup_datetime'].dt.day_name().astype('category')
-    df['pickup_hour'] = df['tpep_pickup_datetime'].dt.hour.astype('Int8')
+    df['pickup_hour'] = df['tpep_pickup_datetime'].dt.hour.astype('int8')
 
     logger.info('[TRANSFORM] Features calculadas: trip_duration_min, speed_mph, pickup_day_name, pickup_hour')
     return df
