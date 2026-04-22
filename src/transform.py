@@ -1,6 +1,5 @@
 import pandas as pd
 import logging
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -54,10 +53,17 @@ def filtrar_nulos_criticos(df: pd.DataFrame, campos_criticos: list[str]) -> pd.D
 
     filas_con_nulos = df[campos_criticos].isna().any(axis=1).sum()
     if filas_con_nulos > 0:
-        df = df.dropna(subset=campos_criticos)
         logger.warning(f'[TRANSFORM] Eliminadas {filas_con_nulos:,} filas por nulos en campos críticos')
+        df = df.dropna(subset=campos_criticos)
+
     else:
         logger.info('[TRANSFORM] Validación exitosa: Cero nulos en campos críticos')
+
+    logger.info(f'[TRANSFORM] Filtrar Nulos Criticos | Entrantes: {n_antes:,} -> Salientes: {len(df):,} ({n_antes-len(df):,} eliminados)')
+    return df
+
+def filtrar_fechas_invalidas(df: pd.DataFrame) -> pd.DataFrame:
+    n_antes = len(df)
 
     mask_fecha = df['tpep_dropoff_datetime'] > df['tpep_pickup_datetime']
     fechas_inconsistentes = (~mask_fecha).sum()
@@ -65,8 +71,10 @@ def filtrar_nulos_criticos(df: pd.DataFrame, campos_criticos: list[str]) -> pd.D
     if fechas_inconsistentes > 0:
         logger.warning(f'[TRANSFORM] Eliminadas {fechas_inconsistentes:,} filas por fechas invertidas o viajes de 0 segundos')
         df = df[mask_fecha]
-
-    logger.info(f'[TRANSFORM] Filtrar Nulos Criticos | Entrantes: {n_antes:,} -> Salientes: {len(df):,} ({n_antes-len(df):,} eliminados)')
+    else:
+        logger.info('[TRANSFORM] Validación exitosa: Cero fechas inválidas')
+        
+    logger.info(f'[TRANSFORM] Filtrar Fechas Inválidas | Entrantes: {n_antes:,} -> Salientes: {len(df):,} ({n_antes-len(df):,} eliminados)')
     return df
 
 def imputar_nulos(df: pd.DataFrame, campos_monetarios_aux: list[str]) -> pd.DataFrame:
@@ -95,6 +103,23 @@ def imputar_nulos(df: pd.DataFrame, campos_monetarios_aux: list[str]) -> pd.Data
     logger.info(f'[TRANSFORM] Imputar Nulos | Total imputados: {nulos_pass + nulos_rate + nulos_flag + nulos_mone:,}')
     return df   
 
+def imputar_zonas(df_zonas: pd.DataFrame) -> pd.DataFrame:
+
+    nulos_antes = df_zonas.isna().sum().sum()
+    if nulos_antes == 0:
+        logger.info('[TRANSFORM] Zonas: sin nulos, no requiere imputación')
+        return df_zonas
+
+    campos_zona = ['borough', 'zone', 'service_zone']
+    for col in campos_zona:
+        nulos_col = df_zonas[col].isna().sum()
+        if nulos_col > 0:
+            df_zonas[col] = df_zonas[col].fillna('Unknown')
+            logger.warning(f'[TRANSFORM] Imputados {nulos_col:,} nulos en {col} con (Unknown)')
+
+    logger.info(f'[TRANSFORM] Imputar Zonas Nulos | Total imputados: {nulos_antes:,}')
+    return df_zonas
+
 def filtrar_registros_invalidos(
     df: pd.DataFrame,
     campos_monetarios_aux: list[str],
@@ -119,7 +144,7 @@ def filtrar_registros_invalidos(
     if invalidos_passenger > 0:
         logger.warning(f'[TRANSFORM] passenger_count: {invalidos_passenger:,} registros fuera de rango [{passenger_min} - {passenger_max}]')
     if invalidos_distance > 0:
-        logger.warning(f'[TRANSFORM] trip_distance: {invalidos_distance:,} registros inválidos (<= {distancia_min})')
+        logger.warning(f'[TRANSFORM] trip_distance: {invalidos_distance:,} registros inválidos (< {distancia_min})')
     if invalidos_fare > 0:
         logger.warning(f'[TRANSFORM] fare_amount: {invalidos_fare:,} registros por debajo del mínimo (${fare_min})')
     if invalidos_total > 0:
@@ -150,19 +175,11 @@ def remover_duplicados(df: pd.DataFrame, columnas_claves: list[str]) -> pd.DataF
 
 def enriquecer_zonas(df: pd.DataFrame, df_zonas: pd.DataFrame) -> pd.DataFrame:
     n_antes = len(df)
-
-    logger.info('[TRANSFORM] Limpiando tabla de dimensiones (zonas)...')
-    df_zonas = (
-        df_zonas
-        .pipe(estandarizar_columnas)
-        .pipe(limpiar_texto)
-    )
-
     logger.info('[TRANSFORM] Cruzando zonas de Pickup y Dropoff...')
     df = (
         df
-        .merge(right=df_zonas, left_on='pulocationid', right_on='locationid', validate='many_to_one')
-        .merge(right=df_zonas, left_on='dolocationid', right_on='locationid', validate='many_to_one', suffixes=('_pickup', '_dropoff'))
+        .merge(right=df_zonas, left_on='pulocationid', right_on='locationid', how='left' ,validate='many_to_one')
+        .merge(right=df_zonas, left_on='dolocationid', right_on='locationid', how='left' ,validate='many_to_one', suffixes=('_pickup', '_dropoff'))
         .drop(columns=['locationid_pickup', 'locationid_dropoff'])
     )
 
@@ -176,7 +193,8 @@ def calcular_features(df: pd.DataFrame) -> pd.DataFrame:
 
     df['trip_duration_min'] = (df['tpep_dropoff_datetime'] - df['tpep_pickup_datetime']).dt.total_seconds() / 60
 
-    df['speed_mph'] = df['trip_distance'] / (df['trip_duration_min'] / 60)
+    duracion_horas = df['trip_duration_min'] / 60
+    df['speed_mph'] = df['trip_distance'].div(duracion_horas.replace(0, pd.NA))
 
     mask_speed_fuera_rango = df['speed_mph'] >= 75
     n_fuera_rango = mask_speed_fuera_rango.sum()
@@ -204,6 +222,7 @@ def validar_resultado(
 ) -> pd.DataFrame:
 
     checks = {
+        'df_no_vacio': len(df) > 0,
         'sin_nulos_criticos': df[campos_criticos].notna().all().all(),
         'fechas_consistentes': (df['tpep_dropoff_datetime'] > df['tpep_pickup_datetime']).all(),
 
@@ -214,9 +233,12 @@ def validar_resultado(
 
         'sin_duplicados': not df[columnas_clave].duplicated().any(),
 
+        'zonas_pickup_sin_nulos': df['zone_pickup'].notna().all(),
+        'zonas_dropoff_sin_nulos': df['zone_dropoff'].notna().all(),
+
         'trip_duration_positiva': (df['trip_duration_min'] > 0).all(),
         'speed_valida': (df['speed_mph'].dropna() < 75).all(),
-        'pickup_hour_valido': df['pickup_hour'].between(0, 23).all(),
+        'pickup_hour_sin_nulos': df['pickup_hour'].notna().all(),
         
         'vendorid_es_category': str(df['vendorid'].dtype) == 'category',
         'fechas_son_datetime': pd.api.types.is_datetime64_any_dtype(df['tpep_pickup_datetime']),

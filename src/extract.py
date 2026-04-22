@@ -4,10 +4,10 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-def extract(path: Path, columnas_necesarias: list) -> pd.DataFrame:
+def extract(path: Path) -> pd.DataFrame:
     logger.info(f'[EXTRACT] Iniciando extracción de datos desde: {path}')
     try:
-        df = pd.read_parquet(path, engine='pyarrow', columns=columnas_necesarias)
+        df = pd.read_parquet(path, engine='pyarrow')
         logger.info(f'[EXTRACT] Archivo cargado con éxito | Filas: {len(df):,} | Columnas: {df.shape[1]}')
         return df
     except FileNotFoundError:

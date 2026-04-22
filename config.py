@@ -40,9 +40,9 @@ def get_db_conn() -> str:
     requeridos = ['DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'DB_NAME']
     faltantes = [var for var in requeridos if not os.getenv(var)]
     if faltantes:
-        raise EnvironmentError(f'Varianles faltantes: {faltantes}')
+        raise EnvironmentError(f'Variables faltantes: {faltantes}')
     
     return (
-        f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}:"
+        f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
         f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
     )
