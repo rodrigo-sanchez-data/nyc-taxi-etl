@@ -57,7 +57,7 @@ def ejecutar_pipeline(df: pd.DataFrame, df_zonas: pd.DataFrame) -> pd.DataFrame:
     )
     return df_clean
     
-def main() -> None:
+def main(cargar_postgres: bool = False) -> None:
     logger.info('[PIPELINE] === Iniciando pipeline ETL Taxi NYC ===')
     try:
         df = extract(PATH_RAW)
@@ -71,8 +71,11 @@ def main() -> None:
         logger.info(f'[PIPELINE] Resumen | Reducción: {(n_antes - len(df_clean)) / n_antes:.2%}')
 
         load(df_clean, PATH_PROCESSED)
-        conn_string = get_db_conn()
-        load_to_postgres(df_clean, 'yellow_taxi_2023_01', conn_string)
+        
+        if cargar_postgres:
+            conn_string = get_db_conn()
+            load_to_postgres(df_clean, 'yellow_taxi_2023_01', conn_string)
+
         logger.info('[PIPELINE] === Pipeline completado con éxito ===')
 
     except FileNotFoundError as e:
@@ -89,4 +92,4 @@ def main() -> None:
         sys.exit(1)
 
 if __name__ == '__main__':
-    main()
+    main(cargar_postgres=False)  # ← cambiar a True para cargar a PostgreSQL
