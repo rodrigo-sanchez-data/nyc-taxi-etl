@@ -108,7 +108,9 @@ venv\Scripts\activate        # Windows CMD
 pip install -r requirements.txt
 ```
 
-### 3. Configurar variables de entorno
+### 3. Configurar variables de entorno (solo si usas PostgreSQL)
+
+Si quieres cargar los datos a PostgreSQL, copia el archivo de ejemplo:
 
 ```bash
 cp .env.example .env        # Mac/Linux
@@ -124,6 +126,8 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=taxi_nyc
 ```
+> Si solo quieres ejecutar el pipeline y obtener el Parquet local,
+> puedes saltarte este paso.
 
 ### 4. Descargar los datos
 
@@ -138,9 +142,22 @@ Los archivos de datos no están en el repositorio por su tamaño. Hay que descar
 python main.py
 ```
 
-El pipeline imprime el progreso en consola y guarda el log completo en `etl_taxi.log`.
+Por defecto el pipeline procesa los datos y guarda el resultado 
+en `data/processed/clean_taxi.parquet`.
 
----
+Para cargar también a PostgreSQL, asegúrate de haber configurado
+el `.env` y cambia la última línea de `main.py`:
+
+```python
+# Por defecto — solo Parquet local
+main(cargar_postgres=False)
+
+# Con carga a PostgreSQL
+main(cargar_postgres=True)
+```
+
+El progreso se imprime en consola y el log completo se guarda 
+en `etl_taxi.log`.
 
 ## Decisiones técnicas que tomé
 
