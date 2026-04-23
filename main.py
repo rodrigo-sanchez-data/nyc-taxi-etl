@@ -92,4 +92,4 @@ def main(cargar_postgres: bool = False) -> None:
         sys.exit(1)
 
 if __name__ == '__main__':
-    main(cargar_postgres=False)  # ← cambiar a True para cargar a PostgreSQL
+    main(cargar_postgres=False)  # cambiar a True para cargar a PostgreSQL
